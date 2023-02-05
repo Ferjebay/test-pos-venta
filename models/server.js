@@ -11,9 +11,14 @@ class Server{
 
         this.paths = {
             auth:   '/api/auth',
+            articulos: '/api/articulos',
             buscar: '/api/buscar',
+            clientes: '/api/clientes',
+            proveedores: '/api/proveedores',
+            puntos_ventas: '/api/puntos_ventas',
+            roles: '/api/roles',
             usuarios: '/api/usuarios',
-            roles: '/api/roles'
+            ventas: '/api/ventas'
         }
         
         //Midlewares
@@ -42,9 +47,14 @@ class Server{
 
     routes(){
         this.app.use(this.paths.auth, require('../routes/auth'));
+        this.app.use(this.paths.articulos, require('../routes/articulos'));
         this.app.use(this.paths.buscar, require('../routes/buscar'));
+        this.app.use(this.paths.clientes, require('../routes/clientes'));
         this.app.use(this.paths.usuarios, require('../routes/usuarios'));
+        this.app.use(this.paths.proveedores, require('../routes/proveedores'));
         this.app.use(this.paths.roles, require('../routes/roles'));
+        this.app.use(this.paths.puntos_ventas, require('../routes/puntos_ventas'));
+        this.app.use(this.paths.ventas, require('../routes/ventas'));
     }
 
     listen(){        

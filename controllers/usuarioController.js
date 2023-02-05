@@ -21,7 +21,7 @@ const usuarioGet = async (req, res = response) =>{
 
 
 const usuarioPost = async (req, res = response) =>{
-    const { rol_id, nombres, apellidos, cedula, celular, email, password } = req.body;
+    const { rol_id, pv_id, nombres, apellidos, cedula, celular, email, password } = req.body;
     const mysql = new MySQL();
 
     try {
@@ -30,8 +30,8 @@ const usuarioPost = async (req, res = response) =>{
         const passwordEncriptada = bcryptjs.hashSync(password, salt);
 
         //Verificar si el correo existe
-        const query = `INSERT INTO usuarios(rol_id, nombres, apellidos, cedula, celular, email, password) 
-                VALUES( ${ rol_id }, '${ nombres.toUpperCase() }', '${ apellidos.toUpperCase() }', '${ cedula }', '${ celular }', '${ email }', '${ passwordEncriptada }' )`;
+        const query = `INSERT INTO usuarios(rol_id, pv_id, nombres, apellidos, cedula, celular, email, password) 
+                VALUES( ${ rol_id }, ${ pv_id }, '${ nombres.toUpperCase() }', '${ apellidos.toUpperCase() }', '${ cedula }', '${ celular }', '${ email }', '${ passwordEncriptada }' )`;
         await mysql.ejecutarQuery( query );
                 
         res.json({ msg: "usuario creado" })        
@@ -59,7 +59,7 @@ const usuarioDelete = async (req, res = response) =>{
 
 const usuarioPut = async (req, res = response) =>{
     const { id } = req.params;
-    const { rol_id, nombres, apellidos, cedula, celular, email, password } = req.body;
+    const { rol_id, pv_id, nombres, apellidos, cedula, celular, email, password } = req.body;
     const mysql = new MySQL();
     
     if (password) {
@@ -70,6 +70,7 @@ const usuarioPut = async (req, res = response) =>{
     try {
         let query = `UPDATE usuarios SET 
             rol_id      = ${ rol_id },
+            pv_id      = ${ pv_id },
             nombres     = '${ nombres.toUpperCase() }',
             apellidos   = '${ apellidos.toUpperCase() }',
             cedula      = '${ cedula }',

@@ -8,7 +8,11 @@ const login = async (req, res = response) =>{
         var { email, password: userPassword } = req.body;
         const mysql = new MySQL();
         //Verificar si el correo existe
-        const query = `SELECT * FROM usuarios WHERE email = '${email}'`;
+        const query = `SELECT u.*, r.nombre AS 'rol_name', pv.punto_emision
+                    FROM usuarios u, roles r, puntos_ventas pv  
+                    WHERE r.id = u.rol_id AND
+                    u.pv_id = pv.id AND
+                    u.email = '${ email }' `;
         const usuario = await mysql.ejecutarQuery( query );
 
         if (!usuario || usuario.length === 0) {
