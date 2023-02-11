@@ -6,9 +6,10 @@ const usuarioGet = async (req, res = response) =>{
     const mysql = new MySQL();
 
     try{
-        const query = `SELECT u.*, r.nombre AS rol
-                        FROM usuarios u, roles r
-                        WHERE u.rol_id = r.id ORDER BY u.id DESC`;
+        const query = `SELECT u.*, r.nombre AS rol, pv.nombre AS punto_venta
+        FROM usuarios u, roles r, puntos_ventas pv
+        WHERE u.pv_id = pv.id AND
+        u.rol_id = r.id ORDER BY u.id DESC`;
 
         const usuarios = await mysql.ejecutarQuery( query );
                 

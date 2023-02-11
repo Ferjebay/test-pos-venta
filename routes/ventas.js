@@ -5,7 +5,8 @@ const {
   addVenta, 
   getVentas, 
   anularVenta, 
-  detalleVenta } = require('../controllers/ventaController');
+  detalleVenta, 
+  puntoVentasGet} = require('../controllers/ventaController');
 
 const { validarCampos, validarJWT } = require('../middlewares');
 
@@ -16,7 +17,12 @@ router.get('/getNoFactura', [
   validarCampos,
 ], getNumFactura); 
 
-router.get('/', [
+router.get('/getPV', [
+  validarJWT,
+  validarCampos,
+], puntoVentasGet); 
+
+router.post('/consulta', [
   validarJWT,
   validarCampos,
 ], getVentas); 

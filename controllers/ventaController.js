@@ -10,6 +10,21 @@ const generarSecuencialNumerico = ( valor ) => {
   return `${resultado}${ valor }`
 }
 
+const puntoVentasGet = async (req, res = response) =>{
+  const mysql = new MySQL();
+
+  try{
+      const query = `SELECT id, nombre FROM puntos_ventas`;
+
+      const pv = await mysql.ejecutarQuery( query );
+              
+      res.json({ pv })        
+  }catch (error){
+      console.log(error);
+      return res.json({ msg: 'Error al consultar los puntos de ventas en la DB' })
+  }
+}
+
 const generarSecuencial = async (req, res = response) => {
   const mysql = new MySQL();
   try{
@@ -78,16 +93,26 @@ const addVenta = async (req, res = response) =>{
 
 const getVentas = async (req, res = response) =>{
 
+  const { desde = '', hasta = '', pv_id = '' } = req.body;
+
   const mysql = new MySQL();
 
   try{
-      const query = `SELECT f.*, c.nombres AS cliente, CONCAT(u.nombres, ' ', u.apellidos) AS usuario, 
+      let query = `SELECT f.*, c.nombres AS cliente, CONCAT(u.nombres, ' ', u.apellidos) AS usuario, 
         pv.nombre AS pv_nombre
         FROM facturas f, clientes c, usuarios u, puntos_ventas pv
         WHERE f.cliente_id = c.id AND
         f.usuario_id = u.id AND
         f.pv_id = pv.id`
 
+        if (pv_id != '') 
+          query += ` AND pv.id = ${ pv_id }`
+
+        if (desde != '' && hasta != '') 
+          query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }'`
+        else
+          query += ' AND f.fecha = CURRENT_DATE()'
+        
       const facturas = await mysql.ejecutarQuery( query );
 
       res.json({ facturas })
@@ -135,5 +160,6 @@ module.exports = {
   anularVenta,
   detalleVenta,
   getNumFactura,
-  getVentas
+  getVentas,
+  puntoVentasGet
 }
