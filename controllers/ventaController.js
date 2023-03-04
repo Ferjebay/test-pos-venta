@@ -65,7 +65,7 @@ const addVenta = async (req, res = response) =>{
   try{
       const query = `INSERT INTO facturas(cliente_id, usuario_id, pv_id, num_comprobante, 
           totalIva, totalPago, fecha, hora) 
-          VALUES(${ cliente_id }, ${ usuario_id }, ${ pv_id }, '${ numComprobante }', 0.00, ${ totalPago }, NOW(), CURRENT_TIME())`;
+          VALUES(${ cliente_id }, ${ usuario_id }, ${ pv_id }, '${ numComprobante }', 0.00, ${ totalPago }, DATE_SUB(NOW(), INTERVAL 5 HOUR), DATE_SUB(NOW(), INTERVAL 5 HOUR))`;
       await mysql.ejecutarQuery( query );
 
       const factura_id = await mysql.ejecutarQuery( 'SELECT id FROM facturas ORDER BY id DESC LIMIT 1' );
