@@ -20,7 +20,6 @@ const usuarioGet = async (req, res = response) =>{
     }
 }
 
-
 const usuarioPost = async (req, res = response) =>{
     const { rol_id, pv_id, nombres, apellidos, cedula, celular, email, password } = req.body;
     const mysql = new MySQL();
@@ -58,6 +57,20 @@ const usuarioDelete = async (req, res = response) =>{
     }
 }
 
+const borrarUsuario = async (req, res = response) =>{
+    const { id } = req.params;
+    const mysql = new MySQL();
+
+    try {
+        const query = `DELETE FROM usuarios WHERE id = ${ id };`;
+        await mysql.ejecutarQuery( query );
+                
+        res.json({ msg: "usuario eliminado exitosamente" })        
+    } catch (error) {
+        res.status(500).json({ message: 'Error, este usuario no se puede eliminar' })
+    }
+}
+
 const usuarioPut = async (req, res = response) =>{
     const { id } = req.params;
     const { rol_id, pv_id, nombres, apellidos, cedula, celular, email, password } = req.body;
@@ -91,6 +104,7 @@ const usuarioPut = async (req, res = response) =>{
 }
 
 module.exports = {
+    borrarUsuario,
     usuarioDelete,
     usuarioGet,
     usuarioPost,

@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 
-const { rolesGet, rolesPost, rolesPut, getPermisosByRol } = require('../controllers/rolController');
+const { rolesGet, rolesPost, rolesPut, getPermisosByRol, rolDelete } = require('../controllers/rolController');
 
 const { validarCampos, validarJWT } = require('../middlewares');
 
@@ -27,6 +27,11 @@ router.put('/:rol_id', [
   check('rol', 'Ingresa el nombre del rol').not().isEmpty(),
   validarCampos,
 ], rolesPut); 
+
+router.delete('/:rol_id', [
+  validarJWT,
+  validarCampos,
+], rolDelete); 
 
 module.exports = router;
 

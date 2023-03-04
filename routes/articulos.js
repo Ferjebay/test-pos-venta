@@ -3,7 +3,6 @@ const { check } = require('express-validator');
 
 const { 
   articuloPost, 
-  articulosGet, 
   articulosDelete, 
   articuloPut, 
   getArticuloByIMEI, 
@@ -11,11 +10,6 @@ const {
 const { validarCampos, validarJWT } = require('../middlewares');
 
 const router = Router();
-
-router.get('/', [
-  validarJWT,
-  validarCampos,
-], articulosGet); 
 
 router.post('/', [
   validarJWT,

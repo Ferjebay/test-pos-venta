@@ -64,8 +64,8 @@ const addVenta = async (req, res = response) =>{
 
   try{
       const query = `INSERT INTO facturas(cliente_id, usuario_id, pv_id, num_comprobante, 
-          totalIva, totalPago, fecha) 
-          VALUES(${ cliente_id }, ${ usuario_id }, ${ pv_id }, '${ numComprobante }', 0.00, ${ totalPago }, NOW())`;
+          totalIva, totalPago, fecha, hora) 
+          VALUES(${ cliente_id }, ${ usuario_id }, ${ pv_id }, '${ numComprobante }', 0.00, ${ totalPago }, NOW(), CURRENT_TIME())`;
       await mysql.ejecutarQuery( query );
 
       const factura_id = await mysql.ejecutarQuery( 'SELECT id FROM facturas ORDER BY id DESC LIMIT 1' );
@@ -99,23 +99,57 @@ const getVentas = async (req, res = response) =>{
 
   try{
       let query = `SELECT f.*, c.nombres AS cliente, CONCAT(u.nombres, ' ', u.apellidos) AS usuario, 
-        pv.nombre AS pv_nombre
-        FROM facturas f, clientes c, usuarios u, puntos_ventas pv
+        pv.nombre AS pv_nombre, SUM( df.total - a.precio_base ) AS estadoVenta
+        FROM facturas f, clientes c, usuarios u, puntos_ventas pv, detalle_factura df, articulos a
         WHERE f.cliente_id = c.id AND
         f.usuario_id = u.id AND
-        f.pv_id = pv.id`
+        f.pv_id = pv.id AND
+        f.id = df.factura_id AND
+        df.articulo_id = a.id `
 
         if (pv_id != '') 
           query += ` AND pv.id = ${ pv_id }`
 
         if (desde != '' && hasta != '') 
-          query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }'`
+          query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }' GROUP BY f.id ORDER BY f.id DESC`
         else
-          query += ' AND f.fecha = CURRENT_DATE()'
-        
+          query += ' AND f.fecha = CURRENT_DATE() GROUP BY f.id ORDER BY f.id DESC'
+
       const facturas = await mysql.ejecutarQuery( query );
 
-      res.json({ facturas })
+      const estadoVentas = await getSumaGananciaAndPerdidas( desde, hasta, pv_id );
+
+      res.json({ facturas, estadoVentas })
+  }catch (error) {
+      console.log(error);
+      return res.json({ msg: 'Error al consultar en la DB' })
+  }
+}
+const getSumaGananciaAndPerdidas = async ( desde = '', hasta = '', pv_id = '' ) => {
+  const mysql = new MySQL();
+
+  try{
+      let query = `SELECT SUM( df.total - a.precio_base ) AS estadoVenta
+      FROM detalle_factura df, articulos a, facturas f
+      WHERE df.articulo_id = a.id AND
+      df.factura_id = f.id AND f.estado = 1`;
+
+      if (pv_id != '') 
+          query += ` AND f.pv_id = ${ pv_id }`
+
+      if (desde != '' && hasta != '') 
+        query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }'`
+      else
+        query += ' AND f.fecha = CURRENT_DATE()'
+
+      query += ' AND ( df.total - a.precio_base )'
+
+      const results = await Promise.all([ 
+        await mysql.ejecutarQuery( query + ' < 0' ), 
+        await mysql.ejecutarQuery( query + ' > 0' )
+      ])
+      
+      return { perdidas: results[0][0].estadoVenta, ganancias: results[1][0].estadoVenta }
   }catch (error) {
       console.log(error);
       return res.json({ msg: 'Error al consultar en la DB' })
@@ -141,7 +175,7 @@ const detalleVenta = async (req, res = response) =>{
   const mysql = new MySQL();
 
   try{
-      const query = `SELECT a.marca, a.modelo, a.imei, df.detalle, df.total
+      const query = `SELECT a.marca, a.modelo, a.imei, df.detalle, df.total, a.precio_base, ( df.total - a.precio_base) AS estadoVenta
                   FROM detalle_factura df, articulos a
                   WHERE df.articulo_id = a.id AND
                   df.factura_id = ${ req.params.factura_id }`

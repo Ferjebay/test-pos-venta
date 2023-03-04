@@ -5,11 +5,11 @@ class MySQL{
     async conectarDB(){
         try{
             const cnn = await mysql.createPool({
-                host: 'containers-us-west-142.railway.app',
+                host: 'containers-us-west-170.railway.app',
                 user: 'root', 
-                password: 'Lm25gerJEFYBmlAR5E6N',
+                password: 'cse2tYqJhsEdxHVe04fL',
                 database: 'railway',
-                port: '7645'
+                port: '6346'
             });
             return cnn;
         }catch (error) {

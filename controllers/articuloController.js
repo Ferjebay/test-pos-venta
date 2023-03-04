@@ -2,7 +2,7 @@ const { response } = require('express');
 const MySQL = require('../database/config');
 
 const contarArticulos = async (req, res = response) =>{
-  const { desde, hasta, proveedor_id } = req.body;
+  const { desde, hasta, proveedor_id, page, rowsPerPage, busqueda } = req.body;
 
   const mysql = new MySQL();
   try{
@@ -31,7 +31,7 @@ const contarArticulos = async (req, res = response) =>{
         articulosContados = await mysql.ejecutarQuery( query );
     }
       
-      const articulos = await getListArticulos( desde, hasta, proveedor_id );
+      const articulos = await getListArticulos( desde, hasta, proveedor_id, 0, page, rowsPerPage, busqueda );
       res.json({ articulosContados, articulos });        
   }catch (error) {
       console.log(error);
@@ -39,43 +39,45 @@ const contarArticulos = async (req, res = response) =>{
   }
 }
 
-const getListArticulos = async(desde = '', hasta = '', proveedor_id = '', pv_id = '') => {
+const getListArticulos = async(desde = '', hasta = '', proveedor_id = '', pv_id = '', page = 0, rowsPerPage, busqueda = '') => {
   const mysql = new MySQL();
-
   try{
-      let query = `SELECT a.*, p.razon_social
-          FROM articulos a, proveedores p
-          WHERE a.proveedor_id = p.id`;
+      if (busqueda == 'sin-busqueda') busqueda = ''
 
-        if (proveedor_id != '') 
-          query += ` AND p.id = ${ proveedor_id } `
+      let query = `SELECT a.*, p.razon_social,
+        (SELECT COUNT(*) FROM articulos a, proveedores p 	
+          WHERE a.proveedor_id = p.id`
+
+      if (proveedor_id != ''){
+        query += ` AND p.id = ${ proveedor_id } `
+      } 
+
+      if (desde != '' && hasta != ''){
+        query += ` AND a.fecha_creacion BETWEEN '${desde}' AND '${hasta}'`
+      } 
         
-        if (desde != '' && hasta != '') 
-          query += ` AND a.fecha_creacion BETWEEN '${ desde }' AND '${ hasta }'`
+      query += ` AND a.imei LIKE '%${busqueda}%') AS totalArticulos
+        FROM articulos a, proveedores p
+        WHERE a.proveedor_id = p.id`;
+
+      if (proveedor_id != ''){
+        query += ` AND p.id = ${ proveedor_id } `
+      } 
+        
+      if (desde != '' && hasta != ''){
+        query += ` AND a.fecha_creacion BETWEEN '${ desde }' AND '${ hasta }'`
+      } 
       
-        query += ` ORDER BY a.id DESC`;
+      query += ` AND a.imei LIKE '%${busqueda}%' ORDER BY a.id DESC`
+      
+      if ( rowsPerPage != 0 ) {
+        query += ` LIMIT ${ page }, ${ rowsPerPage }`;
+      }
 
       const articulos = await mysql.ejecutarQuery( query );
       return articulos;
   }catch (error) {
       console.log(error);
-  }
-}
-
-const articulosGet = async (req, res = response) =>{
-  const mysql = new MySQL();
-
-  try{
-      const query = `SELECT a.*, p.razon_social
-                    FROM articulos a, proveedores p
-                    WHERE a.proveedor_id = p.id ORDER BY a.id DESC`;
-
-      const articulos = await mysql.ejecutarQuery( query );
-              
-      res.json({ articulos })        
-  }catch (error) {
-      console.log(error);
-      return res.json({ msg: 'Error al consultar en la DB' })
   }
 }
 
@@ -165,7 +167,6 @@ const getArticuloByIMEI = async (req, res = response) =>{
 module.exports = {
   articuloPut,
   articuloPost,
-  articulosGet,
   articulosDelete,
   contarArticulos,
   getArticuloByIMEI

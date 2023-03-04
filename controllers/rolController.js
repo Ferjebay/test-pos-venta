@@ -90,10 +90,23 @@ const rolesPut = async (req, res = response) =>{
         return res.json({ msg: 'Error al consultar en la DB' })
     }
 }
+const rolDelete = async (req, res = response) =>{
+    const { rol_id } = req.params;
+    const mysql = new MySQL();
+
+    try{
+        await mysql.ejecutarQuery( `DELETE FROM roles_permisos WHERE rol_id = ${ rol_id }` );
+        
+        res.json({ msg: 'Rol eliminado exitosamente' })
+    }catch (error) {
+        return res.status(500).json({ msg: 'Error, no puede eliminar este Rol' })
+    }
+}
 
 module.exports = {
     getPermisosByRol,
     rolesGet,
     rolesPost,
-    rolesPut
+    rolesPut,
+    rolDelete
 }
