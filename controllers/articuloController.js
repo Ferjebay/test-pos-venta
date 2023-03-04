@@ -96,7 +96,7 @@ const articuloPost = async (req, res = response) =>{
             ${ precio_base }, 
             '${ detalle.imei }', 
             '${ detalle.color }', 
-            NOW())
+            DATE_SUB(NOW(), INTERVAL 5 HOUR))
             ${ ((index + 1) != detalles.length ) ? ',' : ';' }`;
       });
 
