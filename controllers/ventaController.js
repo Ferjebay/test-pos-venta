@@ -93,8 +93,7 @@ const addVenta = async (req, res = response) =>{
 
 const getVentas = async (req, res = response) =>{
 
-  const { desde = '', hasta = '', pv_id = '' } = req.body;
-
+  const { desde = '', hasta = '', pv_id = '', filter = '' } = req.body;
   const mysql = new MySQL();
 
   try{
@@ -105,15 +104,19 @@ const getVentas = async (req, res = response) =>{
         f.usuario_id = u.id AND
         f.pv_id = pv.id AND
         f.id = df.factura_id AND
-        df.articulo_id = a.id `
+        df.articulo_id = a.id`
 
-        if (pv_id != '') 
-          query += ` AND pv.id = ${ pv_id }`
-
-        if (desde != '' && hasta != '') 
-          query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }' GROUP BY f.id ORDER BY f.id DESC`
-        else
-          query += ' AND f.fecha = CURRENT_DATE() GROUP BY f.id ORDER BY f.id DESC'
+        if (filter != ''){
+          query += ` AND a.imei = '${ filter }' GROUP BY f.id ORDER BY f.id DESC`
+        }else{
+          if (pv_id != '' && filter == '') 
+            query += ` AND pv.id = ${ pv_id }`
+  
+          if (desde != '' && hasta != '') 
+            query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }' GROUP BY f.id ORDER BY f.id DESC`
+          else
+            query += ' AND f.fecha = CURRENT_DATE() GROUP BY f.id ORDER BY f.id DESC'
+        } 
 
       const facturas = await mysql.ejecutarQuery( query );
 
