@@ -111,7 +111,7 @@ const getVentas = async (req, res = response) =>{
             FROM facturas f, detalle_factura df, articulos a 
             WHERE f.id = df.factura_id and
             df.articulo_id = a.id and
-            a.imei = '${ filter }') GROUP BY f.id ORDER BY f.id DESC`
+            a.imei = '${ filter }' LIMIT 1) GROUP BY f.id ORDER BY f.id DESC`
         }else{
           if (pv_id != '' && filter == '') 
             query += ` AND pv.id = ${ pv_id }`
@@ -146,7 +146,7 @@ const getSumaGananciaAndPerdidas = async ( desde = '', hasta = '', pv_id = '', f
                     FROM facturas f, detalle_factura df, articulos a 
                     WHERE f.id = df.factura_id and
                     df.articulo_id = a.id and
-                    a.imei = '${ filter }')`
+                    a.imei = '${ filter }' LIMIT 1)`
       } else {
         if (pv_id != '') 
             query += ` AND f.pv_id = ${ pv_id }`
