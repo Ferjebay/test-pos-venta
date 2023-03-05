@@ -107,7 +107,11 @@ const getVentas = async (req, res = response) =>{
         df.articulo_id = a.id`
 
         if (filter != ''){
-          query += ` AND a.imei = '${ filter }' GROUP BY f.id ORDER BY f.id DESC`
+          query += ` AND df.factura_id = (SELECT f.id
+            FROM facturas f, detalle_factura df, articulos a 
+            WHERE f.id = df.factura_id and
+            df.articulo_id = a.id and
+            a.imei = '${ filter }') GROUP BY f.id ORDER BY f.id DESC`
         }else{
           if (pv_id != '' && filter == '') 
             query += ` AND pv.id = ${ pv_id }`
@@ -120,7 +124,7 @@ const getVentas = async (req, res = response) =>{
 
       const facturas = await mysql.ejecutarQuery( query );
 
-      const estadoVentas = await getSumaGananciaAndPerdidas( desde, hasta, pv_id );
+      const estadoVentas = await getSumaGananciaAndPerdidas( desde, hasta, pv_id, filter );
 
       res.json({ facturas, estadoVentas })
   }catch (error) {
@@ -128,7 +132,7 @@ const getVentas = async (req, res = response) =>{
       return res.json({ msg: 'Error al consultar en la DB' })
   }
 }
-const getSumaGananciaAndPerdidas = async ( desde = '', hasta = '', pv_id = '' ) => {
+const getSumaGananciaAndPerdidas = async ( desde = '', hasta = '', pv_id = '', filter = '' ) => {
   const mysql = new MySQL();
 
   try{
@@ -137,13 +141,21 @@ const getSumaGananciaAndPerdidas = async ( desde = '', hasta = '', pv_id = '' ) 
       WHERE df.articulo_id = a.id AND
       df.factura_id = f.id AND f.estado = 1`;
 
-      if (pv_id != '') 
-          query += ` AND f.pv_id = ${ pv_id }`
-
-      if (desde != '' && hasta != '') 
-        query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }'`
-      else
-        query += ' AND f.fecha = CURRENT_DATE()'
+      if (filter != '') {
+        query += ` AND df.factura_id = ( SELECT f.id
+                    FROM facturas f, detalle_factura df, articulos a 
+                    WHERE f.id = df.factura_id and
+                    df.articulo_id = a.id and
+                    a.imei = '${ filter }')`
+      } else {
+        if (pv_id != '') 
+            query += ` AND f.pv_id = ${ pv_id }`
+  
+        if (desde != '' && hasta != '') 
+          query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }'`
+        else
+          query += ' AND f.fecha = CURRENT_DATE()'
+      }
 
       query += ' AND ( df.total - a.precio_base )'
 
