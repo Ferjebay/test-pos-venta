@@ -119,7 +119,7 @@ const getVentas = async (req, res = response) =>{
           if (desde != '' && hasta != '') 
             query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }' GROUP BY f.id ORDER BY f.id DESC`
           else
-            query += ' AND f.fecha = CURRENT_DATE() GROUP BY f.id ORDER BY f.id DESC'
+            query += ' AND f.fecha = DATE_SUB(NOW(), INTERVAL 5 HOUR)) GROUP BY f.id ORDER BY f.id DESC'
         } 
 
       const facturas = await mysql.ejecutarQuery( query );
