@@ -119,7 +119,7 @@ const getVentas = async (req, res = response) =>{
           if (desde != '' && hasta != '') 
             query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }' GROUP BY f.id ORDER BY f.id DESC`
           else
-            query += ' AND f.fecha = DATE_SUB(NOW(), INTERVAL 5 HOUR)) GROUP BY f.id ORDER BY f.id DESC'
+            query += ` AND f.fecha = SUBSTRING_INDEX(DATE_SUB(NOW(), INTERVAL 5 HOUR), ' ' ,1) GROUP BY f.id ORDER BY f.id DESC`
         } 
 
       const facturas = await mysql.ejecutarQuery( query );
@@ -154,7 +154,7 @@ const getSumaGananciaAndPerdidas = async ( desde = '', hasta = '', pv_id = '', f
         if (desde != '' && hasta != '') 
           query += ` AND f.fecha BETWEEN '${ desde }' AND '${ hasta }'`
         else
-          query += ' AND f.fecha = CURRENT_DATE()'
+          query += ` AND f.fecha = SUBSTRING_INDEX(DATE_SUB(NOW(), INTERVAL 5 HOUR), ' ' ,1)`
       }
 
       query += ' AND ( df.total - a.precio_base )'
